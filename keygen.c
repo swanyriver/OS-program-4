@@ -11,8 +11,6 @@
 
 int main(int argc, char **argv) {
 
-    //todo assert num args and int value for arg[1]
-
     /*initialize random*/
     srand( time( NULL ) );
 
