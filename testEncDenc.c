@@ -23,6 +23,18 @@ void ENCODE(char* key, char* text, size_t len){
     }
 }
 
+void DECODE(char* key, char* text, size_t len){
+    int read = 0;
+    while(read < len && *text != '\n'){
+        if(*text == ' ') *text = '['; //'A' + 26;
+        if(*key == ' ') *key = '[';  //'A' + 26;
+        *text = 'A' + ((((*text - 'A') + 27) - (*key - 'A'))%27);
+        if(*text == '[') *text = ' ';
+        ++text;
+        ++key;
+        ++len;
+    }
+}
 
 int main(void)
 {
@@ -49,6 +61,10 @@ int main(void)
     ENCODE(key,text,len);
 
     printf("encoded text:%s",text);
+
+    DECODE(key,text,len);
+
+    printf("decoded text:%s",text);
 
     free(key);
     free(text);
