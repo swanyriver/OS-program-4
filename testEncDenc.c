@@ -9,13 +9,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+char modAdd(char text, char key){
+    return 'A' + ((text - 'A') + (key - 'A')) % 27;
+}
+char modSub(char text, char key){
+    return 'A' + ((((text - 'A') + 27) - (key - 'A'))%27);
+}
 
-void ENCODE(char* key, char* text, size_t len){
+void modText(char* key, char* text, size_t len, char (*mod)(char,char)){
     int read = 0;
     while(read < len && *text != '\n'){
         if(*text == ' ') *text = '['; //'A' + 26;
         if(*key == ' ') *key = '[';  //'A' + 26;
-        *text = 'A' + ((*text - 'A') + (*key - 'A')) % 27;
+        //*text = 'A' + ((*text - 'A') + (*key - 'A')) % 27;
+        *text = mod(*text,*key);
         if(*text == '[') *text = ' ';
         ++text;
         ++key;
@@ -23,17 +30,13 @@ void ENCODE(char* key, char* text, size_t len){
     }
 }
 
+
+void ENCODE(char* key, char* text, size_t len){
+    modText(key,text,len,modAdd);
+}
+
 void DECODE(char* key, char* text, size_t len){
-    int read = 0;
-    while(read < len && *text != '\n'){
-        if(*text == ' ') *text = '['; //'A' + 26;
-        if(*key == ' ') *key = '[';  //'A' + 26;
-        *text = 'A' + ((((*text - 'A') + 27) - (*key - 'A'))%27);
-        if(*text == '[') *text = ' ';
-        ++text;
-        ++key;
-        ++len;
-    }
+    modText(key,text,len,modSub);
 }
 
 int main(void)
