@@ -9,8 +9,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int
-main(void)
+
+void ENCODE(char* key, char* text, size_t len){
+    int read = 0;
+    while(read < len && *text != '\n'){
+        if(*text == ' ') *text = '['; //'A' + 26;
+        if(*key == ' ') *key = '[';  //'A' + 26;
+        *text = 'A' + ((*text - 'A') + (*key - 'A')) % 27;
+        if(*text == '[') *text = ' ';
+        ++text;
+        ++key;
+        ++len;
+    }
+}
+
+
+int main(void)
 {
     FILE *keyFD,*cryptFD;
     char *key = NULL;
@@ -32,6 +46,9 @@ main(void)
     printf("key:%s",key);
     printf("plaintext1:%s",text);
 
+    ENCODE(key,text,len);
+
+    printf("encoded text:%s",text);
 
     free(key);
     free(text);
