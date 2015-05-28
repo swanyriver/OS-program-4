@@ -5,6 +5,16 @@
  *      Author: brandon
  */
 
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+
+int GetRandomInRange ( int min , int max );
+
+int int main(int argc, char **argv) {
+    int keylength = strtol(argv[1],NULL,10);
+    for(int i=0; i<)
+}
 
 /******************************************************************************
  *    purpose:produce a random number
@@ -27,4 +37,5 @@ int GetRandomInRange ( int min , int max ) {
     random = (rand() % range) + min;
     return random;
 }
+
 
