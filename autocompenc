@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+if [[pgrep server ]] ; then
+	pkill server
+fi
+
+gcc otp_crypt_d.c modAdd.c -o server
+gcc client.c -o client
+
+./server $1 &
+sleep 2
+./client $1 plaintext2 key > crypt
