@@ -38,6 +38,10 @@ int main(int argc, char **argv) {
     socketFD = socket(AF_INET, SOCK_STREAM, 0);
     if(socketFD<0) error_exit("Socket Error: Opening");
 
+    //set ports to be reused
+    int yes=1;
+    setsockopt(socketFD, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+
     //set up sever addr struct
     port = strtol(argv[1],NULL,10);
     bzero((void *) &serv_addr, sizeof(serv_addr));
@@ -94,6 +98,10 @@ int main(int argc, char **argv) {
 
         if(commSocket < 0){
             fprintf(stderr,"[%d] %s\n",getpid(),"error on accept");
+            if(errno){
+               const char* error = strerror(errno);
+               fprintf(stderr, "%s\n",error);
+            }
         } else {
             communicate(commSocket);
         }
