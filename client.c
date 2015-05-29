@@ -75,7 +75,7 @@ void communicate(int sock, int textFD, int keyFD){
         numRead=read(textFD,buffer,HALFPACKET);
         //todo error check this
         if(buffer[numRead-1]=='\n')endOfText=1;
-        numRead=read(textFD,buffer+HALFPACKET,HALFPACKET);
+        numRead=read(keyFD,buffer+HALFPACKET,HALFPACKET);
         //todo error check this
 
         //send text and key pair to server
