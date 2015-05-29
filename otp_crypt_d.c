@@ -99,6 +99,8 @@ int main(int argc, char **argv) {
         }
         //todo client should close socket, how does server now when its done
 
+        printf("%s\n","SERVER:socket closed on client side");
+
         close(commSocket);
     }
 
@@ -111,12 +113,15 @@ void communicate(int sock){
     bzero(key, sizeof(key));
     int readN;
 
-    while(readN = read(sock,text,PACKETSIZE) != 0){
+    do{
+        readN = read(sock,text,PACKETSIZE);
         if(readN < 0)
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
-        else
-            printf("%s\n",text);
-    }
+        else if(readN){
+            if (text[readN-1]) text[readN]=0;
+            printf("SERVE-PRINT:%s\n",text);
+        }
+    }while(readN);
 
 
 }
