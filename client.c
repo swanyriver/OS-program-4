@@ -15,12 +15,16 @@
 #include <netdb.h>
 #include <errno.h>
 #include <fcntl.h>
+#include "packet.h"
 
 void error_exit(char* message);
+void communicate(int sock, int textFD, int keyFD);
 
 int main(int argc, char **argv) {
-    //usage
+    //usage //todo check args
     //otp_dec ciphertext1 key70000 portnumber
+
+    //todo compare length of key and text
 
     int socketFD, commSocket, port;
     struct sockaddr_in serv_addr;
@@ -46,22 +50,57 @@ int main(int argc, char **argv) {
     if (connect(socketFD,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error_exit("error connecting to server socket");
 
-    int readfile = open(argv[2],O_RDONLY);
-    char buffer[256];
-    bzero(buffer,sizeof(buffer));
-    int n;
-    do{
-        n = read(readfile,buffer,256);
-        if(n>0){
-            //buffer[n]=0;
-            //printf("CLIENT READ[%d]:%s\n",n,buffer);
-            write(socketFD,buffer,256);
-            sleep(5);
-        }
-    }while(n);
+    int textFD = open(argv[2],O_RDONLY);
+    if(textFD < 1 ) error_exit("Problem opening plaintext file");
+
+    int keyFD = open(argv[3],O_RDONLY);
+    if(keyFD < 1 ) error_exit("Problem opening key file");
+
+    communicate(socketFD,textFD,keyFD);
+
     close(socketFD);
 
     return 0;
+}
+
+void communicate(int sock, int textFD, int keyFD){
+
+    char buffer[PACKETSIZE];
+    char output[HALFPACKET+1];
+    output[HALFPACKET] = '\0';
+    int numRead = 0;
+    int endOfText = 0;
+
+    do{
+        numRead=read(textFD,buffer,HALFPACKET);
+        //todo error check this
+        if(buffer[numRead-1]=='\n')endOfText=1;
+        numRead=read(textFD,buffer+HALFPACKET,HALFPACKET);
+        //todo error check this
+
+        //send text and key pair to server
+        write(sock,buffer,PACKETSIZE);
+
+        //recieve *crypted text
+        //read(sock,output,HALFPACKET);
+
+        //todo remove newline
+        //printf("%s\n",output);
+
+        sleep(5);
+
+    }while(!endOfText);
+
+    printf("CLIENT REACHED END OF FILE\n");
+
+    /*int n;
+    do{
+        n = read(readfile,buffer,256);
+        if(n>0){
+            write(socketFD,buffer,256);
+            sleep(5);
+        }
+    }while(n);*/
 }
 
 void error_exit(char* message){

@@ -113,21 +113,30 @@ int main(int argc, char **argv) {
 }
 
 void communicate(int sock){
-    char text[PACKETSIZE+1];
-    char key[PACKETSIZE+1];
+    //todo remove plus 1 and bzero //will not be printed on this sied
+    char text[HALFPACKET+1];
+    char key[HALFPACKET+1];
     bzero(text,sizeof(text));
     bzero(key, sizeof(key));
-    int readN;
+    int readT, readK;
 
     do{
-        readN = read(sock,text,PACKETSIZE);
-        if(readN < 0)
+        readT = read(sock,text,HALFPACKET);
+        if(readT < 0)
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
-        else if(readN){
-            if (text[readN-1]) text[readN]=0;
-            printf("SERVEr[%d]:%s\n",getpid(),text);
+        else if(readT){
+            if (text[readT-1]) text[readT]=0;
+            printf("SERVER[%d] TEXT:%s\n",getpid(),text);
         }
-    }while(readN);
+
+        readK = read(sock,key,HALFPACKET);
+        if(readK < 0)
+            fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
+        else if(readK){
+            if (key[readK-1]) key[readK]=0;
+            printf("SERVER[%d]  KEY:%s\n",getpid(),key);
+        }
+    }while(readT);
 
 
 }
