@@ -14,10 +14,10 @@ int main(int argc, char **argv) {
     /*initialize random*/
     srand( time( NULL ) );
 
-    int random;
+    int random, i;
 
     int keylength = strtol(argv[1],NULL,10);
-    for(int i=0; i<keylength; ++i){
+    for(i=0; i<keylength; ++i){
         random = (rand() % 27);
         if(random==26){
             putchar(' ');
