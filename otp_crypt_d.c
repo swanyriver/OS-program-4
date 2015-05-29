@@ -25,9 +25,6 @@ int main(int argc, char **argv) {
 
     if( argc < 2) error_exit("Must provide port number");
 
-    //to prevent the creation of zombies
-    //signal(SIGCHLD,SIG_IGN); todo remove if we stick with the process pool methd
-
     const int NONSENSE = -5;
     const int POOL_SIZE = 5;
     int socketFD, commSocket, port;
@@ -54,12 +51,12 @@ int main(int argc, char **argv) {
                   sizeof(serv_addr)) < 0)
         error_exit("Socket Error: Opening");
 
-    listen(socketFD,5);
+    listen(socketFD,POOL_SIZE);
 
     int spawnpid;
 
-    int i = 0;
-    for(; i<POOL_SIZE; i++){
+    int i = 1;
+    for(; ;){
         spawnpid = NONSENSE;
 
         //begin separate processes
@@ -76,13 +73,14 @@ int main(int argc, char **argv) {
         }
 
         if ( !spawnpid ) break;
-    }
 
-    if(spawnpid){
-        close(socketFD);
-        while(1){
-            //nothing, search for better
-            sleep(10000);
+        if(i<POOL_SIZE){
+            i++;
+        }else{
+            //if one of their is a child to be reaped (unexpected but possible)
+            //the loop will run again and a new process will be spawned
+            int status;
+            wait(&status);
         }
     }
 
@@ -91,7 +89,7 @@ int main(int argc, char **argv) {
     //ensure it dies with parent
     prctl(PR_SET_PDEATHSIG, SIGHUP);
 
-    //become a listening daeomon
+    //become a listening daemon
     while(1){
         commSocket = accept(socketFD, (struct sockaddr *) &cli_addr,
                 &clength);
