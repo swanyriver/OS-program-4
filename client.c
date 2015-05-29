@@ -26,6 +26,8 @@ int main(int argc, char **argv) {
 
     //todo compare length of key and text
 
+    //todo check for bad chars in text
+
     int socketFD, commSocket, port;
     struct sockaddr_in serv_addr;
     struct hostent *server;
@@ -69,38 +71,27 @@ void communicate(int sock, int textFD, int keyFD){
     char output[HALFPACKET+1];
     output[HALFPACKET] = '\0';
     int numRead = 0;
+    int keyRead = 0;
     int endOfText = 0;
 
     do{
         numRead=read(textFD,buffer,HALFPACKET);
         //todo error check this
         if(buffer[numRead-1]=='\n')endOfText=1;
-        numRead=read(keyFD,buffer+HALFPACKET,HALFPACKET);
+        keyRead=read(keyFD,buffer+HALFPACKET,HALFPACKET);
         //todo error check this
 
         //send text and key pair to server
         write(sock,buffer,PACKETSIZE);
 
         //recieve *crypted text
-        //read(sock,output,HALFPACKET);
+        read(sock,output,numRead);
 
-        //todo remove newline
-        //printf("%s\n",output);
-
-        sleep(5);
+        //output *crypted text
+        write(fileno(stdout),output,numRead);
 
     }while(!endOfText);
 
-    printf("CLIENT REACHED END OF FILE\n");
-
-    /*int n;
-    do{
-        n = read(readfile,buffer,256);
-        if(n>0){
-            write(socketFD,buffer,256);
-            sleep(5);
-        }
-    }while(n);*/
 }
 
 void error_exit(char* message){

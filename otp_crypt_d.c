@@ -20,6 +20,7 @@
 
 void error_exit(char* message);
 void communicate(int sock);
+int __crypt(char* text, char* key);
 
 int main(int argc, char **argv) {
 
@@ -98,14 +99,11 @@ int main(int argc, char **argv) {
             fprintf(stderr,"[%d] %s\n",getpid(),"error on accept");
             if(errno){
                const char* error = strerror(errno);
-               fprintf(stderr, "%s\n",error);
+               fprintf(stderr, "(%d)%s\n",errno,error);
             }
         } else {
             communicate(commSocket);
         }
-        //todo client should close socket, how does server now when its done
-
-        printf("SERVER[%d]:%s\n",getpid(),"socket closed on client side");
 
         close(commSocket);
     }
@@ -126,27 +124,38 @@ void communicate(int sock){
         if(readT < 0)
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
         else if(readT){
-            //if (text[readT-1]) text[readT]=0;
-            printf("SERVER[%d] TEXT:",getpid());
+            /*printf("SERVER[%d] TEXT:",getpid());
             fflush(stdout);
             write(1,text,HALFPACKET);
             putchar('\n');
             printf("SERVER[%d]  KEY:",getpid());
             fflush(stdout);
             write(1,text+HALFPACKET,HALFPACKET);
-            putchar('\n');
+            putchar('\n');*/
+
+            int out = __crypt(text,text+HALFPACKET);
+            write(sock,text,out);
         }
 
-       /* readK = read(sock,key,HALFPACKET);
-        if(readK < 0)
-            fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
-        else if(readK){
-            if (key[readK-1]) key[readK]=0;
-            printf("SERVER[%d]  KEY:%s\n",getpid(),key);
-        }*/
     }while(readT);
 
 
+}
+
+int __crypt(char* text, char* key){
+    //returns either halfpacket or parital if encouter /n
+    int numRead = 0;
+    char spaceEncode = 'A' + 26;
+    while(numRead < HALFPACKET && *text != '\n'){
+        if(*text == ' ') *text = spaceEncode;
+        if(*key == ' ') *key = spaceEncode;
+        *text = modCrypt(*text,*key);
+        if(*text == spaceEncode) *text = ' ';
+        ++text;
+        ++key;
+        ++numRead;
+    }
+    return numRead;
 }
 
 void error_exit(char* message){
