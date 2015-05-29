@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
         }
         //todo client should close socket, how does server now when its done
 
-        printf("%s\n","SERVER:socket closed on client side");
+        printf("SERVER[%d]:%s\n",getpid(),"socket closed on client side");
 
         close(commSocket);
     }
@@ -127,7 +127,7 @@ void communicate(int sock){
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
         else if(readN){
             if (text[readN-1]) text[readN]=0;
-            printf("SERVE-PRINT:%s\n",text);
+            printf("SERVEr[%d]:%s\n",getpid(),text);
         }
     }while(readN);
 

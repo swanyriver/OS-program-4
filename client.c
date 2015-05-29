@@ -51,10 +51,10 @@ int main(int argc, char **argv) {
     bzero(buffer,sizeof(buffer));
     int n;
     do{
-        n = read(readfile,buffer,255);
+        n = read(readfile,buffer,256);
         if(n>0){
-            buffer[n]=0;
-            printf("CLIENT READ[%d]:%s\n",n,buffer);
+            //buffer[n]=0;
+            //printf("CLIENT READ[%d]:%s\n",n,buffer);
             write(socketFD,buffer,256);
             sleep(5);
         }
