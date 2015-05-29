@@ -15,16 +15,11 @@
 #include <errno.h>
 #include <sys/prctl.h>
 
-void error_exit(char* message){
-   fprintf(stderr,"%s\n",message);
-   if(errno){
-       const char* error = strerror(errno);
-       fprintf(stderr, "%s\n",error);
-   }
-   exit(1);
-}
+#include "packet.h"
+#include "ModuloOperation.h"
 
-
+void error_exit(char* message);
+void communicate(int sock);
 
 int main(int argc, char **argv) {
 
@@ -35,7 +30,7 @@ int main(int argc, char **argv) {
 
     const int NONSENSE = -5;
     const int POOL_SIZE = 5;
-    int socketFD, newsockfd, port;
+    int socketFD, commSocket, port;
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t clength;
 
@@ -57,10 +52,11 @@ int main(int argc, char **argv) {
 
     listen(socketFD,5);
 
-    int childcount = 0;
+    int spawnpid;
 
-    for(int i=0; i<POOL_SIZE; i++){
-        int spawnpid = NONSENSE;
+    int i = 0;
+    for(; i<POOL_SIZE; i++){
+        spawnpid = NONSENSE;
 
         //begin separate processes
         spawnpid = fork();
@@ -75,24 +71,62 @@ int main(int argc, char **argv) {
             exit(1);
         }
 
-        if (spawnpid == 0){
-            ///////////////////////////
-            ///////child process//////
-            //////////////////////////
+        if ( !spawnpid ) break;
+    }
 
-            //ensure it dies with parent
-            prctl(PR_SET_PDEATHSIG, SIGHUP);
-
-        } else {
-            ///////////////////////
-            ////parent process/////
-            ///////////////////////
+    if(spawnpid){
+        close(socketFD);
+        while(1){
+            //nothing, search for better
+            sleep(10000);
         }
     }
 
+    //child processes
+
+    //ensure it dies with parent
+    prctl(PR_SET_PDEATHSIG, SIGHUP);
+
+    //become a listening daeomon
     while(1){
-        //nothing, search for better
-        sleep(10000);
+        commSocket = accept(socketFD, (struct sockaddr *) &cli_addr,
+                &clength);
+
+        if(commSocket < 0){
+            fprintf(stderr,"[%d] %s\n",getpid(),"error on accept");
+        } else {
+            communicate(commSocket);
+        }
+        //todo client should close socket, how does server now when its done
+
+        close(commSocket);
     }
 
 }
+
+void communicate(int sock){
+    char text[PACKETSIZE+1];
+    char key[PACKETSIZE+1];
+    bzero(text,sizeof(text));
+    bzero(key, sizeof(key));
+    int readN;
+
+    while(readN = read(sock,text,PACKETSIZE) != 0){
+        if(readN < 0)
+            fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
+        else
+            printf("%s\n",text);
+    }
+
+
+}
+
+void error_exit(char* message){
+   fprintf(stderr,"%s\n",message);
+   if(errno){
+       const char* error = strerror(errno);
+       fprintf(stderr, "%s\n",error);
+   }
+   exit(1);
+}
+
