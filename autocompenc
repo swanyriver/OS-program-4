@@ -1,13 +1,14 @@
 #!/bin/bash
 
-pkill server
+pkill myserver
 set -e
 
 
-gcc -DENC otp_crypt_d.c -o server
+gcc -DENC otp_crypt_d.c -o myserver
 gcc -g -DENC client.c handshake.c -o client
 
-./server $1 &
+./myserver $1 &
 sleep 1
 sleep 1
 ./client $1 plaintext2 key > crypt
+cat crypt
