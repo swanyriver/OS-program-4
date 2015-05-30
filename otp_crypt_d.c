@@ -16,7 +16,6 @@
 #include <sys/prctl.h>
 
 #include "packet.h"
-#include "ModuloOperation.h"
 #include "handshake.h"
 
 void error_exit(char* message);
@@ -134,8 +133,23 @@ void communicate(int sock){
 
 }
 
+char modAdd(char text, char key){
+    return 'A' + ((text - 'A') + (key - 'A')) % 27;
+}
+char modSub(char text, char key){
+    return 'A' + ((((text - 'A') + 27) - (key - 'A'))%27);
+}
+
 int __crypt(char* text, char* key){
     //returns either halfpacket or parital if encouter /n
+
+    char (*modCrypt)(char,char);
+#ifdef ENC
+    modCrypt = modAdd;
+#else
+    modCrypt = modSub;
+#endif
+
     int numRead = 0;
     char spaceEncode = 'A' + 26;
     while(numRead < HALFPACKET && *text != '\n'){

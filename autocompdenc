@@ -4,7 +4,7 @@ pkill server
 set -e
 
 
-gcc otp_crypt_d.c modSub.c -o server
+gcc otp_crypt_d.c -o server
 gcc -g client.c handshake.c -o client
 
 ./server $1 &

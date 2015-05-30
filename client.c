@@ -59,8 +59,6 @@ int main(int argc, char **argv) {
     if(keyFD < 1 ) error_exit("Problem opening key file");
 
     if( handshake(socketFD) ){
-        printf("handshake passed\n");
-        exit(0);
         communicate(socketFD,textFD,keyFD);
     } else {
         fprintf(stderr,"Server unavailable on port:%d\n",port);
