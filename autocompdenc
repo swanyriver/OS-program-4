@@ -5,9 +5,9 @@ set -e
 
 
 gcc otp_crypt_d.c modSub.c -o server
-gcc client.c -o client
+gcc -g client.c -o client
 
 ./server $1 &
 sleep 1
 sleep 1
-./client -g $1 crypt key
+./client $1 crypt key

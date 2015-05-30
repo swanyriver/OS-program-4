@@ -68,8 +68,6 @@ int main(int argc, char **argv) {
 void communicate(int sock, int textFD, int keyFD){
 
     char buffer[PACKETSIZE];
-    char output[HALFPACKET+1];
-    output[HALFPACKET] = '\0';
     int numRead = 0;
     int keyRead = 0;
     int endOfText = 0;
@@ -85,10 +83,11 @@ void communicate(int sock, int textFD, int keyFD){
         write(sock,buffer,PACKETSIZE);
 
         //recieve *crypted text
-        read(sock,output,numRead);
+        read(sock,buffer,numRead);
 
         //output *crypted text
-        write(fileno(stdout),output,numRead);
+        write(fileno(stdout),buffer,numRead);
+        fflush(stdout);
 
     }while(!endOfText);
 
