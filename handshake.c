@@ -16,19 +16,23 @@
 #include "packet.h"
 
 int handshake(int sock){
+    
+#ifdef ENC
     char* enc = "ENCRYPT\n";
-    char* key = "CRPTKEY\n";
     char* crypt = "CXOZOLW\n";
+#else
+    char* enc = "DECRYPT\n";
+    char* crypt = "FVRJHTQ\n";
+#endif
+    
+    char* key = "CRPTKEY\n";
     char buffer[PACKETSIZE];
     strncpy(buffer,crypt,9);
     strncpy(buffer+HALFPACKET,key,9);
 
-    write(sock,buffer,PACKETSIZE);
+    int numWrite = write(sock,buffer,PACKETSIZE);
     int numread = read(sock,buffer,7);
-    printf("HANDSHAKE read(%d):%s\n",numread,buffer);
-
-    //todo remove this
-    exit(0);
-
-    return 1;
+    
+    if(strcmp(enc,buffer)==0) return 1;
+    else return 0;
 }

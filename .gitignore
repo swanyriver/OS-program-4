@@ -6,6 +6,8 @@
 
 !autocomp*
 
+!badhandshakeauto
+
 generate.c
 
 testEncDenc.c

@@ -126,14 +126,7 @@ void communicate(int sock){
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
         else if(readT){
             int out = __crypt(text,text+HALFPACKET);
-
-            printf("crpyted:%d\n",out); //todo remove testing output
-            write(fileno(stdout),text,out);
-            putchar('\n');
-            fflush(stdout);
-
             write(sock,text,out);
-
         }
 
     }while(readT);

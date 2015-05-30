@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
     //todo check for bad chars in text
 
-    int socketFD, commSocket, port;
+    int socketFD, port;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
@@ -58,10 +58,13 @@ int main(int argc, char **argv) {
     int keyFD = open(argv[3],O_RDONLY);
     if(keyFD < 1 ) error_exit("Problem opening key file");
 
-    /*if(! handshake(commSocket) ){
+    if( handshake(socketFD) ){
+        printf("handshake passed\n");
+        exit(0);
         communicate(socketFD,textFD,keyFD);
-    }*/
-    communicate(socketFD,textFD,keyFD);
+    } else {
+        fprintf(stderr,"Server unavailable on port:%d\n",port);
+    }
 
     close(socketFD);
 
