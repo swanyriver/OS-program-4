@@ -17,6 +17,7 @@
 
 #include "packet.h"
 #include "ModuloOperation.h"
+#include "handshake.h"
 
 void error_exit(char* message);
 void communicate(int sock);
@@ -124,17 +125,15 @@ void communicate(int sock){
         if(readT < 0)
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
         else if(readT){
-            /*printf("SERVER[%d] TEXT:",getpid());
-            fflush(stdout);
-            write(1,text,HALFPACKET);
-            putchar('\n');
-            printf("SERVER[%d]  KEY:",getpid());
-            fflush(stdout);
-            write(1,text+HALFPACKET,HALFPACKET);
-            putchar('\n');*/
-
             int out = __crypt(text,text+HALFPACKET);
+
+            printf("crpyted:%d\n",out); //todo remove testing output
+            write(fileno(stdout),text,out);
+            putchar('\n');
+            fflush(stdout);
+
             write(sock,text,out);
+
         }
 
     }while(readT);

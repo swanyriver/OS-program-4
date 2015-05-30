@@ -5,3 +5,7 @@
 !*.h
 
 !autocomp*
+
+generate.c
+
+testEncDenc.c

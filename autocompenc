@@ -5,9 +5,9 @@ set -e
 
 
 gcc otp_crypt_d.c modAdd.c -o server
-gcc -g client.c -o client
+gcc -g client.c encHandshake.c -o client
 
 ./server $1 &
 sleep 1
 sleep 1
-./client $1 plaintext1 key > crypt
+./client $1 plaintext2 key > crypt

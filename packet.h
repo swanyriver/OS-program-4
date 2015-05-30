@@ -10,6 +10,7 @@
 
 #define PACKETSIZE 256
 //todo put back to 512
-const int HALFPACKET = PACKETSIZE/2;
+#define HALFPACKET PACKETSIZE/2
+//todo define without division
 
 #endif /* PAKET_H_ */

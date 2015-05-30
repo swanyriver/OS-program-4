@@ -58,6 +58,9 @@ int main(int argc, char **argv) {
     int keyFD = open(argv[3],O_RDONLY);
     if(keyFD < 1 ) error_exit("Problem opening key file");
 
+    /*if(! handshake(commSocket) ){
+        communicate(socketFD,textFD,keyFD);
+    }*/
     communicate(socketFD,textFD,keyFD);
 
     close(socketFD);
