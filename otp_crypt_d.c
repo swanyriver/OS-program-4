@@ -111,18 +111,17 @@ int main(int argc, char **argv) {
 }
 
 void communicate(int sock){
-    //todo remove plus 1 and bzero //will not be printed on this sied
     char text[PACKETSIZE];
-    //char key[HALFPACKET+1];
-    bzero(text,sizeof(text));
-    //bzero(key, sizeof(key));
     int readT;
-    //int readK;
 
     do{
         readT = read(sock,text,PACKETSIZE);
         if(readT < 0)
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
+            if(errno){
+               const char* error = strerror(errno);
+               fprintf(stderr, "%s\n",error);
+           }
         else if(readT){
             int out = __crypt(text,text+HALFPACKET);
             write(sock,text,out);
@@ -161,6 +160,7 @@ int __crypt(char* text, char* key){
         ++key;
         ++numRead;
     }
+    if(*text == '\n') ++numRead;
     return numRead;
 }
 

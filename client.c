@@ -72,8 +72,7 @@ int main(int argc, char **argv) {
 void communicate(int sock, int textFD, int keyFD){
 
     char buffer[PACKETSIZE];
-    int numRead = 0;
-    int keyRead = 0;
+    int numRead, keyRead, sockRead;
     int endOfText = 0;
 
     do{
@@ -81,13 +80,17 @@ void communicate(int sock, int textFD, int keyFD){
         //todo error check this
         if(buffer[numRead-1]=='\n')endOfText=1;
         keyRead=read(keyFD,buffer+HALFPACKET,numRead);
-        //todo error check this
+        //todo error check this //break if read less than text
 
         //send text and key pair to server
         write(sock,buffer,PACKETSIZE);
 
         //recieve *crypted text
-        read(sock,buffer,numRead);
+        sockRead=read(sock,buffer,numRead);
+        //todo break if recireved less than read
+
+        //FOR DEBUG ONLY
+        //printf("\nfileRead:%d sockRead:%d\n",numRead,sockRead);
 
         //output *crypted text
         write(fileno(stdout),buffer,numRead);

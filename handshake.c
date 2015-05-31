@@ -31,7 +31,7 @@ int handshake(int sock){
     strncpy(buffer+HALFPACKET,key,9);
 
     int numWrite = write(sock,buffer,PACKETSIZE);
-    int numread = read(sock,buffer,7);
+    int numread = read(sock,buffer,8);
     
     if(strcmp(enc,buffer)==0) return 1;
     else return 0;
