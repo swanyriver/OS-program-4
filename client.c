@@ -24,9 +24,22 @@ int main(int argc, char **argv) {
     //usage
     //otp_dec ciphertext1 key70000 portnumber
 
+    ////////////////////////////////////////////////////////////////////////
+    ///////////CHECK NUMBER OF ARGS AND VALID PORT NUMBER //////////////////
+    ////////////////////////////////////////////////////////////////////////
     if (argc < 4)
-        error_exit("insufficient arguments provided\n./otp_*_d plaintext key port");
+        error_exit("insufficient arguments provided\nUSAGE: ./otp_*_d plaintext key port");
 
+    if(*(argv[3])=='0')
+        error_exit("Port Zero is not a valid port");
+
+    int port = strtol(argv[3],NULL,10);
+    if(!port)
+        error_exit("problem converting provided port number to numeric value");
+
+    ////////////////////////////////////////////////////////////////////////
+    ///////////CHECK THAT PLAINTEXT CONTAINS NO BAD CHARACTERS /////////////
+    ////////////////////////////////////////////////////////////////////////
     int ch;
     FILE* textF = fopen(argv[1],"r");
     if(! textF) error_exit("Problem opening plaintext file");
@@ -40,7 +53,10 @@ int main(int argc, char **argv) {
     } while(ch != EOF);
     fclose(textF);
 
-
+    ////////////////////////////////////////////////////////////////////////
+    ////////// CHECK THAT KEYFILE CONTAINS NO BAD CHARACTERS ///////////////
+    ///////////////////// AND IS AT LEAST AS LONG AS PLAINTEXT FILE ////////
+    ////////////////////////////////////////////////////////////////////////
     FILE* keyF = fopen(argv[2],"r");
     if(! keyF) error_exit("Problem opening key file");
     int keyRead = 0;
@@ -58,7 +74,10 @@ int main(int argc, char **argv) {
         error_exit("keyfile is too short for this operation");
 
 
-    int socketFD, port;
+    ////////////////////////////////////////////////////////////////////////
+    ///////////OPEN SOCKET AND CONNECT TO DAEMON ON PROVIDED PORT //////////
+    ////////////////////////////////////////////////////////////////////////
+    int socketFD;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
@@ -71,7 +90,6 @@ int main(int argc, char **argv) {
         error_exit("localhost not found");
 
     bzero((void *) &serv_addr, sizeof(serv_addr));
-    port = strtol(argv[3],NULL,10);
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr,
          (char *)&serv_addr.sin_addr.s_addr,
@@ -88,16 +106,24 @@ int main(int argc, char **argv) {
         return 2;
     }
 
+    ////////////////////////////////////////////////////////////////////////
+    ///////////VERIFY THAT CLIENT IS CONNECTED TO CORRECT SERVER ///////////
+    ////////////////////////////////////////////////////////////////////////
+    if( ! handshake(socketFD) ){
+        fprintf(stderr,"Correct server unavailable on port:%d\n",port);
+        return 2;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////
+    ///////////ALL SYSTEMS GO !!!! /////////////////////////////////////////
+    ////////OPEN FILE DESCRIPTORS AND BEGING COMMUNICATION WITH SERVER /////
+    ////////////////////////////////////////////////////////////////////////
     int textFD = open(argv[1],O_RDONLY);
     if(textFD < 1 ) error_exit("Problem opening plaintext file");
 
     int keyFD = open(argv[2],O_RDONLY);
     if(keyFD < 1 ) error_exit("Problem opening key file");
-
-    if( ! handshake(socketFD) ){
-        fprintf(stderr,"Correct server unavailable on port:%d\n",port);
-        return 2;
-    }
 
     communicate(socketFD,textFD,keyFD);
     close(socketFD);
@@ -113,17 +139,25 @@ void communicate(int sock, int textFD, int keyFD){
 
     do{
         numRead=read(textFD,buffer,HALFPACKET);
-        //todo error check this
+        if(numRead == -1){
+            error_exit("problem reading from plaintext file");
+        }
+
         if(buffer[numRead-1]=='\n')endOfText=1;
         keyRead=read(keyFD,buffer+HALFPACKET,numRead);
-        //todo error check this //break if read less than text
+
+        if(keyRead < numRead){
+            error_exit("problem reading from keyfile");
+        }
 
         //send text and key pair to server
         write(sock,buffer,PACKETSIZE);
 
         //recieve *crypted text
         sockRead=read(sock,buffer,numRead);
-        //todo break if recireved less than read
+        if(sockRead < numRead){
+            error_exit("problem receiving data from daemon");
+        }
 
         //FOR DEBUG ONLY
         //printf("\nfileRead:%d sockRead:%d\n",numRead,sockRead);

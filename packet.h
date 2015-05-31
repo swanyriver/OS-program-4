@@ -8,9 +8,7 @@
 #ifndef PAKET_H_
 #define PAKET_H_
 
-#define PACKETSIZE 256
-//todo put back to 512
-#define HALFPACKET PACKETSIZE/2
-//todo define without division
+#define PACKETSIZE 512
+#define HALFPACKET 256
 
 #endif /* PAKET_H_ */
