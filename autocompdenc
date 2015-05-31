@@ -10,4 +10,4 @@ gcc -g client.c handshake.c -o client
 ./myserver $1 &
 sleep 1
 sleep 1
-./client $1 crypt key
+./client crypt key $1

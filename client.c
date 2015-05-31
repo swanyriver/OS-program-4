@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
         error_exit("insufficient arguments provided\n./otp_*_d plaintext key port");
 
     int ch;
-    FILE* textF = fopen(argv[2],"r");
+    FILE* textF = fopen(argv[1],"r");
     if(! textF) error_exit("Problem opening plaintext file");
     int textRead = 0;
     do{
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     fclose(textF);
 
 
-    FILE* keyF = fopen(argv[3],"r");
+    FILE* keyF = fopen(argv[2],"r");
     if(! keyF) error_exit("Problem opening key file");
     int keyRead = 0;
     do{
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
         error_exit("localhost not found");
 
     bzero((void *) &serv_addr, sizeof(serv_addr));
-    port = strtol(argv[1],NULL,10);
+    port = strtol(argv[3],NULL,10);
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr,
          (char *)&serv_addr.sin_addr.s_addr,
@@ -88,10 +88,10 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    int textFD = open(argv[2],O_RDONLY);
+    int textFD = open(argv[1],O_RDONLY);
     if(textFD < 1 ) error_exit("Problem opening plaintext file");
 
-    int keyFD = open(argv[3],O_RDONLY);
+    int keyFD = open(argv[2],O_RDONLY);
     if(keyFD < 1 ) error_exit("Problem opening key file");
 
     if( ! handshake(socketFD) ){

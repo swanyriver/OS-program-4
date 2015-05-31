@@ -139,8 +139,8 @@ char modSub(char text, char key){
     return 'A' + ((((text - 'A') + 27) - (key - 'A'))%27);
 }
 
+//returns either halfpacket or parital if encouter /n
 int __crypt(char* text, char* key){
-    //returns either halfpacket or parital if encouter /n
 
     char (*modCrypt)(char,char);
 #ifdef ENC
