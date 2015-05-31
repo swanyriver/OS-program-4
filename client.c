@@ -21,12 +21,42 @@ void error_exit(char* message);
 void communicate(int sock, int textFD, int keyFD);
 
 int main(int argc, char **argv) {
-    //usage //todo check args
+    //usage
     //otp_dec ciphertext1 key70000 portnumber
 
-    //todo compare length of key and text
+    if (argc < 4)
+        error_exit("insufficient arguments provided\n./otp_*_d plaintext key port");
 
-    //todo check for bad chars in text
+    int ch;
+    FILE* textF = fopen(argv[2],"r");
+    if(! textF) error_exit("Problem opening plaintext file");
+    int textRead = 0;
+    do{
+        ch = fgetc(textF);
+        ++textRead;
+        if( (ch < 'A' || ch > 'Z') && !(ch == ' ' || ch == '\n') && ch != EOF){
+            error_exit("Plaintext file contains bad characters");
+        }
+    } while(ch != EOF);
+    fclose(textF);
+
+
+    FILE* keyF = fopen(argv[3],"r");
+    if(! keyF) error_exit("Problem opening key file");
+    int keyRead = 0;
+    do{
+        ch = fgetc(keyF);
+        ++keyRead;
+        if( (ch < 'A' || ch > 'Z') && !(ch == ' ' || ch == '\n') && ch != EOF ){
+            error_exit("Plaintext file contains bad characters");
+        }
+    } while(keyRead < textRead && ch != EOF); //read and check only as many as text
+    fclose(keyF);
+
+    //key file reached EOF before reading sufficient characters
+    if(keyRead<textRead)
+        error_exit("keyfile is too short for this operation");
+
 
     int socketFD, port;
     struct sockaddr_in serv_addr;
