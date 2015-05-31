@@ -49,8 +49,14 @@ int main(int argc, char **argv) {
     serv_addr.sin_port = htons(port);
 
     //connect to server socket
-    if (connect(socketFD,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-        error_exit("error connecting to server socket");
+    if (connect(socketFD,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0){
+        fprintf(stderr,"Error connecting to server socket on port:%d\n",port);
+        if(errno){
+           const char* error = strerror(errno);
+           fprintf(stderr, "%s\n",error);
+        }
+        return 2;
+    }
 
     int textFD = open(argv[2],O_RDONLY);
     if(textFD < 1 ) error_exit("Problem opening plaintext file");
@@ -58,12 +64,12 @@ int main(int argc, char **argv) {
     int keyFD = open(argv[3],O_RDONLY);
     if(keyFD < 1 ) error_exit("Problem opening key file");
 
-    if( handshake(socketFD) ){
-        communicate(socketFD,textFD,keyFD);
-    } else {
-        fprintf(stderr,"Server unavailable on port:%d\n",port);
+    if( ! handshake(socketFD) ){
+        fprintf(stderr,"Correct server unavailable on port:%d\n",port);
+        return 2;
     }
 
+    communicate(socketFD,textFD,keyFD);
     close(socketFD);
 
     return 0;

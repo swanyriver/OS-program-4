@@ -154,7 +154,15 @@ int __crypt(char* text, char* key){
     while(numRead < HALFPACKET && *text != '\n'){
         if(*text == ' ') *text = spaceEncode;
         if(*key == ' ') *key = spaceEncode;
-        *text = modCrypt(*text,*key);
+
+        if(*text<'A' || *text > spaceEncode){
+            fprintf(stderr,"[%d] %s\n",getpid(),"BAD CHARACTER IN TEXT");
+        } else if(*key<'A' || *key > spaceEncode){
+            fprintf(stderr,"[%d] %s\n",getpid(),"BAD CHARACTER IN KEY");
+        } else {
+            *text = modCrypt(*text,*key);
+        }
+
         if(*text == spaceEncode) *text = ' ';
         ++text;
         ++key;
