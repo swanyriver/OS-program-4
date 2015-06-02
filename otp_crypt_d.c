@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     const int NONSENSE = -5;
     const int POOL_SIZE = 5;
     int spawnpid;
-    int socketFD, commSocket, port;
+    int socketFD, commSocket;
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t clength;
 
