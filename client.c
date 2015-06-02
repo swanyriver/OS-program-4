@@ -21,8 +21,8 @@ void error_exit(char* message);
 void communicate(int sock, int textFD, int keyFD);
 
 int main(int argc, char **argv) {
-    //usage
-    //otp_dec ciphertext1 key70000 portnumber
+    /////////////////////usage///////////////////////////
+    //otp_dec plaintextFile/cipherFile keyFile portnumber
 
     ////////////////////////////////////////////////////////////////////////
     ///////////CHECK NUMBER OF ARGS AND VALID PORT NUMBER //////////////////
@@ -138,11 +138,13 @@ void communicate(int sock, int textFD, int keyFD){
     int endOfText = 0;
 
     do{
+        /////READ FROM PLAINTEXT FILE////////
         numRead=read(textFD,buffer,HALFPACKET);
         if(numRead == -1){
             error_exit("problem reading from plaintext file");
         }
 
+        /////READ FROM KEY FILE///////////////
         if(buffer[numRead-1]=='\n')endOfText=1;
         keyRead=read(keyFD,buffer+HALFPACKET,numRead);
 
@@ -153,14 +155,11 @@ void communicate(int sock, int textFD, int keyFD){
         //send text and key pair to server
         write(sock,buffer,PACKETSIZE);
 
-        //recieve *crypted text
+        //recieve *crypted text  //same number as read
         sockRead=read(sock,buffer,numRead);
         if(sockRead < numRead){
             error_exit("problem receiving data from daemon");
         }
-
-        //FOR DEBUG ONLY
-        //printf("\nfileRead:%d sockRead:%d\n",numRead,sockRead);
 
         //output *crypted text
         write(fileno(stdout),buffer,numRead);
@@ -170,6 +169,7 @@ void communicate(int sock, int textFD, int keyFD){
 
 }
 
+//print message, and if available perror messege, exit in failure
 void error_exit(char* message){
    fprintf(stderr,"%s\n",message);
    if(errno){
