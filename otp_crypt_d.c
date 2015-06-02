@@ -24,10 +24,22 @@ int __crypt(char* text, char* key);
 
 int main(int argc, char **argv) {
 
+    ////////////////////////////////////////////////////////////////////////
+    ///////////CHECK NUMBER OF ARGS AND VALID PORT NUMBER //////////////////
+    ////////////////////////////////////////////////////////////////////////
     if( argc < 2) error_exit("Must provide port number");
 
+    if(*(argv[1])=='0')
+        error_exit("Port Zero is not a valid port");
+
+    int port = strtol(argv[1],NULL,10);
+    if(!port)
+        error_exit("problem converting provided port number to numeric value");
+
+    //fork and socket variables
     const int NONSENSE = -5;
     const int POOL_SIZE = 5;
+    int spawnpid;
     int socketFD, commSocket, port;
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t clength;
@@ -54,8 +66,6 @@ int main(int argc, char **argv) {
 
     listen(socketFD,POOL_SIZE);
 
-    int spawnpid;
-
     int i = 1;
     for(; ;){
         spawnpid = NONSENSE;
@@ -73,8 +83,10 @@ int main(int argc, char **argv) {
             exit(1);
         }
 
+        //child process exit and begin communicating
         if ( !spawnpid ) break;
 
+        //spin up 5 processes then begin waiting to fork more if one is killed
         if(i<POOL_SIZE){
             i++;
         }else{
@@ -87,11 +99,14 @@ int main(int argc, char **argv) {
 
     //child processes
 
-    //ensure it dies with parent
+    //ensure child dies with parent
+    //grading script kills all by name but if user killed by pid provided 
+    //when launched in background all 6 processes will terminate
     prctl(PR_SET_PDEATHSIG, SIGHUP);
 
     //become a listening daemon
     while(1){
+        //all daemons in pool are blocked on this call, only one will get to accept at a time
         commSocket = accept(socketFD, (struct sockaddr *) &cli_addr,
                 &clength);
 
@@ -102,47 +117,57 @@ int main(int argc, char **argv) {
                fprintf(stderr, "(%d)%s\n",errno,error);
             }
         } else {
+            //ready to beging socket communication
             communicate(commSocket);
         }
 
+        //connection to client ended
         close(commSocket);
     }
 
 }
 
 void communicate(int sock){
-    char text[PACKETSIZE];
-    int readT;
+    char buffer[PACKETSIZE];
+    int numRead;
 
     do{
-        readT = read(sock,text,PACKETSIZE);
-        if(readT < 0)
+        //read text and key buffer[0-HALFPACKET-1] = text
+        //                     buffer[HALFPACKET - PACKETSIZE-1] = key
+        numRead = read(sock,buffer,PACKETSIZE);
+        if(numRead < 0) {
             fprintf(stderr,"[%d] %s\n",getpid(),"error on socket read");
             if(errno){
                const char* error = strerror(errno);
                fprintf(stderr, "%s\n",error);
-           }
-        else if(readT){
-            int out = __crypt(text,text+HALFPACKET);
-            write(sock,text,out);
+            }
+        }
+        else if(numRead){
+            //process text/key send back crypted text
+            int numOut = __crypt(buffer,buffer+HALFPACKET);
+            write(sock,buffer,numOut);
         }
 
-    }while(readT);
-
-
+    }while(numRead);
 }
 
+//formula for OTP ENCRYPTION
 char modAdd(char text, char key){
     return 'A' + ((text - 'A') + (key - 'A')) % 27;
 }
+
+//formula for OTP DECRYPTION
 char modSub(char text, char key){
     return 'A' + ((((text - 'A') + 27) - (key - 'A'))%27);
 }
 
-//returns either halfpacket or parital if encouter /n
+//returns either halfpacket or parital if /n encoutered
 int __crypt(char* text, char* key){
 
+    //function pointer for encryption/decryption
     char (*modCrypt)(char,char);
+
+    //point to appropriate function using compile flag
 #ifdef ENC
     modCrypt = modAdd;
 #else
@@ -152,26 +177,38 @@ int __crypt(char* text, char* key){
     int numRead = 0;
     char spaceEncode = 'A' + 26;
     while(numRead < HALFPACKET && *text != '\n'){
+
+        //encode spaces for the ecryption formula
         if(*text == ' ') *text = spaceEncode;
         if(*key == ' ') *key = spaceEncode;
 
+        //outputs msg to stderr when character that is not A-Z || ' '
+        //leaves character untouched in returned message
         if(*text<'A' || *text > spaceEncode){
             fprintf(stderr,"[%d] %s\n",getpid(),"BAD CHARACTER IN TEXT");
         } else if(*key<'A' || *key > spaceEncode){
             fprintf(stderr,"[%d] %s\n",getpid(),"BAD CHARACTER IN KEY");
         } else {
+            //character is modified acording to OTP protocol
             *text = modCrypt(*text,*key);
         }
 
+        //decode spaces
         if(*text == spaceEncode) *text = ' ';
+
+        //advance character pointers and read count
         ++text;
         ++key;
         ++numRead;
     }
+
+    // \n was not encoded but will be returned 
+    // becuase client expects parity in characters read and recieved
     if(*text == '\n') ++numRead;
     return numRead;
 }
 
+//print message, and if available perror messege, exit in failure
 void error_exit(char* message){
    fprintf(stderr,"%s\n",message);
    if(errno){
