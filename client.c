@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
         ch = fgetc(textF);
         ++textRead;
         if( (ch < 'A' || ch > 'Z') && !(ch == ' ' || ch == '\n') && ch != EOF){
-            error_exit("Plaintext file contains bad characters");
+            error_exit("ERROR: Plaintext file contains bad characters");
         }
     } while(ch != EOF);
     fclose(textF);
