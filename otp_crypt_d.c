@@ -2,7 +2,7 @@
  * otp_crypt_d.c
  *
  *  Created on: May 28, 2015
- *      Author: brandon
+ *      Author: Brandon Swanson
  */
 #include <stdio.h>
 #include <stdlib.h>
